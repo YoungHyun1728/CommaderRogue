@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 4793489095342743320}
   - component: {fileID: 1327429732848152738}
   - component: {fileID: 8609630727829715055}
+  - component: {fileID: -8312872239132932543}
   m_Layer: 5
   m_Name: combaticon
   m_TagString: Untagged
@@ -75,3 +76,17 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &-8312872239132932543
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7886576606358955839}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f31ec827f93f1284c8a9dc5a5ca8a0b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lines: []
+  prevNodePrefab: []
