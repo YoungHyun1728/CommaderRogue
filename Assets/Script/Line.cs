@@ -7,14 +7,6 @@ public class Line : MonoBehaviour
     public GameObject startNode;
     public GameObject endNode;
     public LineRenderer lineRenderer;
-
-    public Line(GameObject start, GameObject end, LineRenderer renderer)
-    {
-        startNode = start;
-        endNode = end;
-        lineRenderer = renderer;
-    }
-
     void Update()
     {
         // 쓸모없어진 라인 삭제
