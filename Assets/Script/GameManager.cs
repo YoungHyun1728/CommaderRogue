@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    public static GameManager instance;   // instance¸¦ staticÀ¸·Î ¼±¾ğÇØ Àü¿ª¿¡¼­ »ç¿ë°¡´É
+    public static GameManager instance;    // instanceë¥¼ staticìœ¼ë¡œ ì„ ì–¸í•´ ì „ì—­ì—ì„œ ì‚¬ìš©ê°€ëŠ¥
+
 
     void Awake()
     {
@@ -14,7 +15,7 @@ public class GameManager : MonoBehaviour
             return;
         }
         instance = this;
-        DontDestroyOnLoad(gameObject); // ¾À ÀÌµ¿ ÈÄ¿¡µµ ÆÄ±«µÇÁö ¾ÊÀ½
+        DontDestroyOnLoad(gameObject); // ì”¬ ì´ë™ í›„ì—ë„ íŒŒê´´ë˜ì§€ ì•ŠìŒ
     }
 
     void Start()

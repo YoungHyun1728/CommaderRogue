@@ -5,9 +5,9 @@ using UnityEngine;
 
 public enum NodeType
 {
-    Combat,  // °¢°¢ µîÀåÈ®·üÀº MapGenerator.cs
+    Combat,  //ê°ê° ë“±ì¥í™•ë¥ ì€ MapGenerator.cs
     Rest,    
-    Boss,    // º¸½º    10·¹º§¿¡ º¸½º,ÀÌÈÄ 10·¹º§¸¶´Ù º¸½º
+    Boss,    // ë³´ìŠ¤    10ë ˆë²¨ì— ë³´ìŠ¤,ì´í›„ 10ë ˆë²¨ë§ˆë‹¤ ë³´ìŠ¤
     Event,   
     Trade,   
 }
@@ -15,39 +15,39 @@ public enum NodeType
 public class MapNode : MonoBehaviour
 {
     public NodeType Type { get; private set; }
-    public int Level { get; private set; }  // Æ®¸® ·¹º§ (³ôÀÌ)
-    public List<MapNode> Connections { get; private set; }  // ¿¬°áµÈ ³ëµåµé
+    public int Level { get; private set; }
+    public List<MapNode> Connections { get; private set; }  // ì—°ê²°ëœ ë…¸ë“œë“¤
     public GameObject NodeObject { get; private set; }
     public List<Line> lines = new List<Line>();
     public List<GameObject> prevNodePrefab = new List<GameObject>();
 
     private void Update()
     {
-        if (Level == 0)  // ·¹º§ 0Àº ÆÄ±«ÇÏÁö ¾ÊÀ½
+        if (Level == 0)  // ë ˆë²¨ 0ì€ íŒŒê´´í•˜ì§€ ì•ŠìŒ
         {
             return;
         }
 
         if (prevNodePrefab == null || prevNodePrefab.Count == 0)
         {
-            Destroy(gameObject); // ¸®½ºÆ®°¡ nullÀÌ°Å³ª ºñ¾îÀÖÀ» ¶§ ÆÄ±«
+            Destroy(gameObject); // ë¦¬ìŠ¤íŠ¸ê°€ nullì´ê±°ë‚˜ ë¹„ì–´ìˆì„ ë•Œ íŒŒê´´
         }
         else
         {
-            bool allNoneOrMissing = true;  // ¸ğµç ³ëµå°¡ None(¶Ç´Â Missing)ÀÎÁö È®ÀÎÇÏ´Â º¯¼ö
+            bool allNoneOrMissing = true;  // ëª¨ë“  ë…¸ë“œê°€ None(ë˜ëŠ” Missing)ì¸ì§€ í™•ì¸í•˜ëŠ” ë³€ìˆ˜
 
             foreach (var prevNode in prevNodePrefab)
             {
-                if (prevNode != null)  // null(Áï, None »óÅÂ)ÀÌ ¾Æ´Ñ ³ëµå°¡ ÀÖÀ¸¸é
+                if (prevNode != null)  // null(ì¦‰, None ìƒíƒœ)ì´ ì•„ë‹Œ ë…¸ë“œê°€ ìˆìœ¼ë©´
                 {
                     allNoneOrMissing = false;
-                    break;  // ´õ ÀÌ»ó Ã¼Å©ÇÒ ÇÊ¿ä ¾øÀ½
+                    break;  // ë” ì´ìƒ ì²´í¬í•  í•„ìš” ì—†ìŒ
                 }
             }
 
             if (allNoneOrMissing)
             {
-                Destroy(gameObject);  // ¸ğµç ³ëµå°¡ None(¶Ç´Â Missing)ÀÏ °æ¿ì ÆÄ±«
+                Destroy(gameObject);   // ëª¨ë“  ë…¸ë“œê°€ None(ë˜ëŠ” Missing)ì¼ ê²½ìš° íŒŒê´´
             }
         }
     }

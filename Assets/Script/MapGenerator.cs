@@ -4,44 +4,51 @@ using System.Reflection;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class MapGenerator : MonoBehaviour
 {
     public int totalLevels = 100;
     public int nodesPerLevel = 5;
-    public int bossInterval = 10;  // 10 ·¹º§¸¶´Ù º¸½º ³ëµå
+    public int bossInterval = 10;  // 10ë ˆë²¨ë§ˆë‹¤ ë³´ìŠ¤
 
     public GameObject combatPrefab;
     public GameObject restPrefab;
     public GameObject bossPrefab;
     public GameObject eventPrefab;
     public GameObject tradePrefab;
-    public GameObject linePrefab;  // ¼±À» ±×¸± ¶§ »ç¿ëÇÒ LineRenderer ÇÁ¸®ÆÕ
+    public GameObject linePrefab;  
 
-    private float combatProbability = 0.55f;  // ÀüÅõ ³ëµå È®·ü 
-    private float eventProbability = 0.25f;   // ÀÌº¥Æ® ³ëµå È®·ü
-    private float restProbability = 0.1f;    // ÈŞ½Ä ³ëµå È®·ü 
-    private float tradeProbability = 0.1f;   // °Å·¡ ³ëµå È®·ü 
+    private float combatProbability = 0.55f;  // ê°ë…¸ë“œë“¤ì´ ë“±ì¥í•  í™•ë¥ 
+    private float eventProbability = 0.25f;   
+    private float restProbability = 0.1f;     
+    private float tradeProbability = 0.1f;   
 
     private List<List<MapNode>> mapLevels;
 
-    public GameObject scrollViewContent;  // Scroll ViewÀÇ Content
+    public GameObject scrollViewContent;  
 
     void Start()
     {
+        if (scrollViewContent == null)
+        {
+            Debug.LogError("ScrollViewContent is not assigned in the inspector.");
+            return;
+        }
+
+        AdjustContentSizeAndPosition();
         GenerateNodes();
         CreateConnections();
-        AdjustContentSize();
     }
 
     NodeType GetRandomNodeTypeByProbability(NodeType[] nodeTypes, float[] probabilities)
     {
-        float randomValue = Random.value;  // ·£´ı 0~1 ¹İÈ¯½ÃÅ²´Ù.
-        float cumulativeProbability = 0f;  // È®·ü ´©Àû¿ë º¯¼ö
+        float randomValue = Random.value;  // ëœë¤ 0~1 ë°˜í™˜ì‹œí‚¨ë‹¤.
+        float cumulativeProbability = 0f;  // í™•ë¥  ëˆ„ì ìš© ë³€ìˆ˜
 
         for (int i = 0; i < nodeTypes.Length; i++)
         {
-            // ·£´ıÀ¸·Î ¹İÈ¯µÈ value¸¦ cumulativeProbability¿Í ºñ±³ÇØ¼­ ³ëµå ¹İÈ¯
+            // ëœë¤ìœ¼ë¡œ ë°˜í™˜ëœ valueë¥¼ cumulativeProbabilityì™€ ë¹„êµí•´ì„œ ë…¸ë“œ ë°˜í™˜
             cumulativeProbability += probabilities[i];
             if (randomValue < cumulativeProbability)
             {
@@ -54,19 +61,19 @@ public class MapGenerator : MonoBehaviour
 
     NodeType GetRandomNodeType(int level)
     {
-        float randomValue = Random.value;  // 0~1 »çÀÌ °ª ¹İÈ¯
+        float randomValue = Random.value;  // 0~1 ì‚¬ì´ ê°’ ë°˜í™˜
 
-        if (level == 0)                    //Ã¹¹ø¤Š´Â Ç×»ó ÀüÅõ
+        if (level == 0)                    //ì²«ë²ˆì§¸ëŠ” í•­ìƒ ì „íˆ¬
         {
             return NodeType.Combat;
         }
 
-        if (level % bossInterval == 0) // ·¹º§ 10¸¶´Ù º¸½ºÀü
+        if (level % bossInterval == 0) //ë ˆë²¨ 10ë§ˆë‹¤ ë³´ìŠ¤ì „
         {
             return NodeType.Boss;
         }
 
-        if (level < 4)  // °ÔÀÓ ½ÃÀÛÇÏÀÚ ºÒÇÊ¿äÇÑ ÈŞ½Ä, °Å·¡°¡ ³ª¿ÀÁö ¾Ê°í ·¹º§ 5ºÎÅÍ ³ª¿À°Ô Á¦¾î
+        if (level < 4)  // ê²Œì„ ì‹œì‘í•˜ì ë¶ˆí•„ìš”í•œ íœ´ì‹, ê±°ë˜ê°€ ë‚˜ì˜¤ì§€ ì•Šê³  ë ˆë²¨ 5ë¶€í„° ë‚˜ì˜¤ê²Œ ì œì–´
         {
             NodeType[] nodeTypes = { NodeType.Combat, NodeType.Event };
             float[] probabilities = { combatProbability, eventProbability };
@@ -74,8 +81,8 @@ public class MapGenerator : MonoBehaviour
             return GetRandomNodeTypeByProbability(nodeTypes, probabilities);
         }
 
-        // ÀÌÀü ³ëµå°¡ ÈŞ½ÄÀÌ°Å³ª °Å·¡ÀÏ °æ¿ì ¿¬¼ÓÀ¸·Î ³ª¿ÀÁö ¾Ê°Ô Á¶Á¤
-        // ¿¬°á¸¸ ¾ÈµÇ¸é µÇ´Â ¹®Á¦¶ó ¼öÁ¤ÇØ¾ß ÇÒ°Å°°À½
+        // ì´ì „ ë…¸ë“œê°€ íœ´ì‹ì´ê±°ë‚˜ ê±°ë˜ì¼ ê²½ìš° ì—°ì†ìœ¼ë¡œ ë‚˜ì˜¤ì§€ ì•Šê²Œ ì¡°ì •
+        // ì—°ê²°ë§Œ ì•ˆë˜ë©´ ë˜ëŠ” ë¬¸ì œë¼ ìˆ˜ì •í•´ì•¼ í• ê±°ê°™ìŒ
         /*if (previousNodeType == NodeType.Trade || previousNodeType == NodeType.Rest)
         {
             NodeType[] nodeTypes = { NodeType.Combat, NodeType.Event };
@@ -106,49 +113,56 @@ public class MapGenerator : MonoBehaviour
             case NodeType.Trade:
                 return tradePrefab;
             default:
-                return combatPrefab; // ±âº»°ªÀ¸·Î ÀüÅõ³ëµå
+                return combatPrefab; // ê¸°ë³¸ê°’ìœ¼ë¡œ ì „íˆ¬ë…¸ë“œ
         }
     }
 
     void DrawConnection(GameObject startNode, GameObject endNode)
     {
-        // ¼± ¿ÀºêÁ§Æ®¸¦ ContentÀÇ ÀÚ½ÄÀ¸·Î »ı¼º
+        // ë¼ì¸ ìƒì„±
         GameObject lineObject = Instantiate(linePrefab, scrollViewContent.transform);
         LineRenderer lineRenderer = lineObject.GetComponent<LineRenderer>();
-        lineRenderer.useWorldSpace = false; // ·ÎÄÃ ÁÂÇ¥°è »ç¿ë
 
-        // LineRendererÀÇ À§Ä¡¸¦ ºÎ¸ğ(Content)ÀÇ ÁÂÇ¥°è¿¡ ¸ÂÃã
+        // Line ì´ˆê¸°í™”
+        Line line = lineObject.AddComponent<Line>();
+        line.startNode = startNode;
+        line.endNode = endNode;
+        line.lineRenderer = lineRenderer;
+
+        lineRenderer.useWorldSpace = false; //ì›”ë“œì¢Œí‘œê³„ ì‚¬ìš©
+
+        // LineRendererì˜ ìœ„ì¹˜ë¥¼ ë¶€ëª¨(Content)ì˜ ì¢Œí‘œê³„ì— ë§ì¶¤
         lineObject.transform.localPosition = Vector3.zero;
 
-        // ³ëµåÀÇ RectTransform °¡Á®¿À±â
+        // ë…¸ë“œì˜ RectTransform ê°€ì ¸ì˜¤ê¸°
         RectTransform startRect = startNode.GetComponent<RectTransform>();
         RectTransform endRect = endNode.GetComponent<RectTransform>();
 
         if (startRect == null || endRect == null)
         {
-            Debug.LogError("³ëµå¿¡ RectTransformÀÌ ¾ø½À´Ï´Ù.");
+            Debug.LogError("ï¿½ï¿½???ï¿½ï¿½ï¿½ï¿½ RectTransform?? ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½?ï¿½ï¿½?ï¿½ï¿½?.");
             return;
         }
 
-        // ³ëµåÀÇ ·ÎÄÃ À§Ä¡ °¡Á®¿À±â
+        // ìœ„ì¹˜ê°€ì ¸ì˜¤ê¸°
         Vector3 startPos = startRect.localPosition;
         Vector3 endPos = endRect.localPosition;
 
-        // LineRenderer ¼³Á¤
+        // LineRenderer ì„¤ì •
         lineRenderer.positionCount = 2;
         lineRenderer.SetPosition(0, startPos);
         lineRenderer.SetPosition(1, endPos);
-
-        // ¼±ÀÇ Á¤·Ä ¼ø¼­ ¼³Á¤ (¼±ÅÃ »çÇ×)
+        
+        //ë…¸ë“œì˜ ë’¤ë¡œ ì„ ì •ë¦¬
         lineRenderer.sortingOrder = -1;
 
-        // ¿¬°á Á¤º¸ ¼³Á¤ (ÇÊ¿ä¿¡ µû¶ó)
+        //ì—°ê²° ì •ë³´
         MapNode startMapNode = startNode.GetComponent<MapNode>();
         MapNode endMapNode = endNode.GetComponent<MapNode>();
 
         if (startMapNode != null)
         {
-            startMapNode.ConnectTo(endMapNode, null); // ¿¬°á Ãß°¡
+            startMapNode.ConnectTo(endMapNode, null); // ì—°ê²°ì¶”ê°€
         }
 
         if (endMapNode != null)
@@ -161,35 +175,17 @@ public class MapGenerator : MonoBehaviour
         }
     }
 
-    // ¿¬°áµÇÁö ¾ÊÀº ³ëµå¸¸ »èÁ¦ÇÏ´Â ÇÔ¼ö
-    void RemoveUnusedNodes()
-    {
-        for (int level = 1; level <= totalLevels; level++)
-        {
-            List<MapNode> currentLevelNodes = mapLevels[level];
-
-            foreach (MapNode node in currentLevelNodes)
-            {
-                // prevNodePrefabÀÌ nullÀÌ¸é »èÁ¦
-                if (node.prevNodePrefab.Count == 0)
-                {
-                    Destroy(node.NodeObject);
-                }
-
-                if (node.prevNodePrefab.Count == 1)
-                {
-                    if (node.prevNodePrefab[0] = null)
-                        Destroy(node.NodeObject);
-                }
-            }
-        }
-    }
-
     void GenerateNodes()
     {
         mapLevels = new List<List<MapNode>>();
-        float iconIntervalX = 250.0f;  
-        float iconIntervalY = 175.0f; 
+        float iconIntervalX = 250.0f;
+        float iconIntervalY = 175.0f;
+
+        float contentHalfWidth = scrollViewContent.GetComponent<RectTransform>().sizeDelta.x / 2;
+        float contentHalfHeight = scrollViewContent.GetComponent<RectTransform>().sizeDelta.y / 2;
+
+        float xOffset = 80.0f; 
+        float yOffset = 60.0f; 
 
         for (int level = 0; level <= totalLevels; level++)
         {
@@ -200,13 +196,21 @@ public class MapGenerator : MonoBehaviour
                 NodeType nodeType = GetRandomNodeType(level);
                 GameObject nodePrefab = GetPrefabForNodeType(nodeType);
 
-                // ³ëµå¸¦ ¼¼·Î·Î ¹èÄ¡
-                Vector3 nodePosition = new Vector3(level * iconIntervalX, nodeIndex * -iconIntervalY, 0);
-                GameObject nodeObject = Instantiate(nodePrefab, nodePosition, Quaternion.identity, scrollViewContent.transform);
-                nodeObject.name = $"Node_{level}_{nodeIndex}"; // ³ëµå ÀÌ¸§ ÁöÁ¤
+                // ë…¸ë“œ ë°°ì¹˜
+                Vector2 nodePosition = new Vector2(
+                    (level * iconIntervalX) - contentHalfWidth + xOffset,  // X offset ?ï¿½ï¿½ï¿½Æ¢ï¿½
+                    (-nodeIndex * iconIntervalY) + contentHalfHeight - yOffset  // Y offset ?ï¿½ï¿½ï¿½Æ¢ï¿½
+                );
 
-                // ·ÎÄÃ ÁÂÇ¥ ¼³Á¤ (½ºÅ©·ÑºäÀÇ ÀÚ½ÄÀÏ ¶§´Â ·ÎÄÃ ÁÂÇ¥·Î ¼³Á¤)
-                nodeObject.transform.localPosition = nodePosition;
+
+                // ë…¸ë“œìƒì„±, ì´ë¦„ì„¤ì •
+                GameObject nodeObject = Instantiate(nodePrefab, scrollViewContent.transform);
+                nodeObject.name = $"Node_{level}_{nodeIndex}";
+
+                // RectTransFormì´ìš©
+                RectTransform nodeRect = nodeObject.GetComponent<RectTransform>();
+                nodeObject.GetComponent<RectTransform>().anchoredPosition = nodePosition;
+
 
                 MapNode mapNode = nodeObject.GetComponent<MapNode>();
                 if (mapNode == null)
@@ -218,43 +222,42 @@ public class MapGenerator : MonoBehaviour
                 currentLevelNodes.Add(mapNode);
             }
 
-            // º¸½º ·¹º§ÀÎ °æ¿ì, 3¹øÂ° ³ëµå Á¦¿ÜÇÑ ³ª¸ÓÁö 4°³ »èÁ¦
+            // ë³´ìŠ¤ ë ˆë²¨ì¸ ê²½ìš°, 3ë²ˆì§¸ ë…¸ë“œ ì œì™¸í•œ ë‚˜ë¨¸ì§€ 4ê°œ ì‚­ì œ
             if (level > 0 && level % bossInterval == 0)
             {
                 for (int nodeIndex = 0; nodeIndex < currentLevelNodes.Count; nodeIndex++)
                 {
-                    if (nodeIndex != 2) // 3¹øÂ° ³ëµå¸¦ Á¦¿ÜÇÏ°í ³ª¸ÓÁö »èÁ¦
+                    if (nodeIndex != 2) // 3ë²ˆì§¸ ë…¸ë“œë¥¼ ì œì™¸í•˜ê³  ë‚˜ë¨¸ì§€ ì‚­ì œ
                     {
                         Destroy(currentLevelNodes[nodeIndex].NodeObject);
                     }
                 }
-                // 3¹øÂ° ³ëµå¸¸ ³²±â°í currentLevelNodes¸¦ °»½Å (¸®½ºÆ® º¹»ç)
+                // 3ë²ˆì§¸ ë…¸ë“œë§Œ ë‚¨ê¸°ê³  currentLevelNodesë¥¼ ê°±ì‹  (ë¦¬ìŠ¤íŠ¸ ë³µì‚¬)
                 List<MapNode> bossNodeList = new List<MapNode> { currentLevelNodes[2] };
 
-                // mapLevels¿¡ °»½ÅµÈ ³ëµå ¸®½ºÆ® Ãß°¡
+                // mapLevelsì— ê°±ì‹ ëœ ë…¸ë“œ ë¦¬ìŠ¤íŠ¸ ì¶”ê°€
                 mapLevels.Add(bossNodeList);
 
-                // currentLevelNodes¸¦ »õ·Î¿î º¸½º ³ëµå ¸®½ºÆ®·Î ±³Ã¼
-                currentLevelNodes = bossNodeList;
+                // currentLevelNodesë¥¼ ìƒˆë¡œìš´ ë³´ìŠ¤ ë…¸ë“œ ë¦¬ìŠ¤íŠ¸ë¡œ êµì²´
             }
             else
             {
                 mapLevels.Add(currentLevelNodes);
             }
-            
+
         }
     }
 
     void CreateConnections()
     {
-        for (int level = 1; level <= totalLevels; level++) // level 1ºÎÅÍ ½ÃÀÛ
+        for (int level = 1; level <= totalLevels; level++) 
         {
             List<MapNode> currentLevelNodes = mapLevels[level];
             List<MapNode> previousLevelNodes = mapLevels[level - 1];
 
             foreach (MapNode prevNode in previousLevelNodes)
             {
-                // º¸½º ·¹º§ÀÌ¸é º¸½º ³ëµå(3¹øÂ° ³ëµå)¸¦ ´ÙÀ½ ·¹º§ÀÇ ¸ğµç ³ëµå¿¡ ¿¬°á
+                // ë³´ìŠ¤ ë ˆë²¨ì´ë©´ ë³´ìŠ¤ ë…¸ë“œ(3ë²ˆì§¸ ë…¸ë“œ)ë¥¼ ë‹¤ìŒ ë ˆë²¨ì˜ ëª¨ë“  ë…¸ë“œì— ì—°ê²°
                 if (prevNode.Type == NodeType.Boss)
                 {
                     foreach (MapNode nextNode in currentLevelNodes)
@@ -262,25 +265,25 @@ public class MapGenerator : MonoBehaviour
                         DrawConnection(prevNode.NodeObject, nextNode.NodeObject);
                     }
                 }
-                else if(level % bossInterval == 0)
+                else if (level % bossInterval == 0)
                 {
-                    // ÇöÀç ·¹º§¿¡¼­ º¸½º ³ëµå°¡ ÀÖ´ÂÁö È®ÀÎ
+                    // í˜„ì¬ ë ˆë²¨ì—ì„œ ë³´ìŠ¤ ë…¸ë“œê°€ ìˆëŠ”ì§€ í™•ì¸
                     if (currentLevelNodes.Count > 0)
                     {
-                        MapNode bossNode = currentLevelNodes[0]; // ÇöÀç ·¹º§ÀÇ À¯ÀÏÇÑ º¸½º ³ëµå
+                        MapNode bossNode = currentLevelNodes[0];
                         DrawConnection(prevNode.NodeObject, bossNode.NodeObject);
                     }
                 }
                 else
                 {
-                    // ÀÏ¹İ ·¹º§ÀÇ ³ëµå ¿¬°á
+                    // ì¼ë°˜ ë ˆë²¨ì˜ ë…¸ë“œ ì—°ê²°
                     int prevIndex = previousLevelNodes.IndexOf(prevNode);
                     if (prevIndex >= 0 && prevIndex < currentLevelNodes.Count)
                     {
-                        int minY = Mathf.Max(0, prevIndex - 1); // Y ¹üÀ§ -1
-                        int maxY = Mathf.Min(currentLevelNodes.Count - 1, prevIndex + 1); // Y ¹üÀ§ +1
+                        int minY = Mathf.Max(0, prevIndex - 1); // Y ï¿½ï¿½??ï¿½ï¿½ -1
+                        int maxY = Mathf.Min(currentLevelNodes.Count - 1, prevIndex + 1); // Y ï¿½ï¿½??ï¿½ï¿½ +1
 
-                        // À¯È¿ÇÑ ¹üÀ§ ³»¿¡¼­ ³ëµå ¼±ÅÃ
+                        // ìœ íš¨í•œ ë²”ìœ„ ë‚´ì—ì„œ ë…¸ë“œ ì„ íƒ
                         if (minY <= maxY)
                         {
                             MapNode nextNode = currentLevelNodes[Random.Range(minY, maxY + 1)];
@@ -292,13 +295,13 @@ public class MapGenerator : MonoBehaviour
         }
     }
 
-    void AdjustContentSize()
+    void AdjustContentSizeAndPosition() // contentsí¬ê¸° ì„¤ì • ë° ìœ„ì¹˜ì¡°ì •
     {
         RectTransform contentRect = scrollViewContent.GetComponent<RectTransform>();
 
-        // ÃÖ´ë X ÁÂÇ¥¸¦ °è»êÇÏ¿© ContentÀÇ Width¸¦ ¼³Á¤
-        float contentWidth = (totalLevels + 1) * 250.0f; // iconIntervalX´Â ³ëµå °£ÀÇ °£°İ
-
+        float contentWidth = (totalLevels + 1) * 250.0f; 
         contentRect.sizeDelta = new Vector2(contentWidth, contentRect.sizeDelta.y);
+
+        contentRect.localPosition = new Vector2(0, 0);
     }
 }

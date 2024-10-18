@@ -17,32 +17,11 @@ public class Line : MonoBehaviour
 
     void Update()
     {
+        // ì“¸ëª¨ì—†ì–´ì§„ ë¼ì¸ ì‚­ì œ
         if (startNode == null || endNode == null)
         {
-            // ¿¬°áµÈ ³ëµå°¡ »èÁ¦µÇ¸é ¶óÀÎÀ» ÆÄ±«
             Debug.Log("One of the nodes is null. Destroying the line.");
-            Destroy(gameObject); // ÇöÀç ¶óÀÎ ¿ÀºêÁ§Æ® ÆÄ±«
-        }
-    }
-
-    public void DrawLine()
-    {
-        if (lineRenderer != null)
-        {
-            lineRenderer.SetPosition(0, startNode.transform.position);
-            lineRenderer.SetPosition(1, endNode.transform.position);
-        }
-    }
-
-    public void DestroyIfInvalidLine()
-    {
-        // ½ÃÀÛ ³ëµå³ª ³¡ ³ëµå°¡ nullÀÌ¸é ¿¬°á¼±À» ÆÄ±«
-        if (startNode == null || endNode == null)
-        {
-            if (lineRenderer != null)
-            {
-                GameObject.Destroy(lineRenderer.gameObject); // ¶óÀÎ »èÁ¦
-            }
+            Destroy(gameObject);
         }
     }
 }

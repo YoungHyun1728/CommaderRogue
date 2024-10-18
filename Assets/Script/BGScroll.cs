@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class BGScroll : MonoBehaviour
 {
-    public float scrollSpeed;  // ¹è°æÀÌ ½ºÅ©·ÑµÇ´Â ¼Óµµ
-    public float resetPosition = -15f;  // ¹è°æÀÌ ¿ŞÂÊÀ¸·Î ¹ş¾î³ª´Â À§Ä¡
-    public float startPosition = 15f;  // ¹è°æÀÌ ¿À¸¥ÂÊ¿¡¼­ ´Ù½Ã ½ÃÀÛÇÏ´Â À§Ä¡
+    public float scrollSpeed;  // ë°°ê²½ì´ ìŠ¤í¬ë¡¤ë˜ëŠ” ì†ë„
+    public float resetPosition = -15f;   // ë°°ê²½ì´ ì™¼ìª½ìœ¼ë¡œ ë²—ì–´ë‚˜ëŠ” ìœ„ì¹˜
+    public float startPosition = 15f;   // ë°°ê²½ì´ ì˜¤ë¥¸ìª½ì—ì„œ ë‹¤ì‹œ ì‹œì‘í•˜ëŠ” ìœ„ì¹˜
 
     private Vector3 initialPosition;
 
@@ -18,10 +18,10 @@ public class BGScroll : MonoBehaviour
 
     void Update()
     {
-        // ¹è°æÀ» ¿ŞÂÊÀ¸·Î ÀÌµ¿
+         // ë°°ê²½ì„ ì™¼ìª½ìœ¼ë¡œ ì´ë™
         transform.Translate(Vector3.left * scrollSpeed * Time.deltaTime);
 
-        // ¹è°æÀÌ È­¸é ¿ŞÂÊ ³¡À» ¹ş¾î³ª¸é À§Ä¡¸¦ ¿À¸¥ÂÊÀ¸·Î Àç¹èÄ¡
+       // ë°°ê²½ì´ í™”ë©´ ì™¼ìª½ ëì„ ë²—ì–´ë‚˜ë©´ ìœ„ì¹˜ë¥¼ ì˜¤ë¥¸ìª½ìœ¼ë¡œ ì¬ë°°ì¹˜
         if (transform.position.x < resetPosition)
         {
             Vector3 newPosition = new Vector3(startPosition, transform.position.y, transform.position.z);
