@@ -239,6 +239,7 @@ public class MapGenerator : MonoBehaviour
                 mapLevels.Add(bossNodeList);
 
                 // currentLevelNodes를 새로운 보스 노드 리스트로 교체
+                currentLevelNodes = bossNodeList;
             }
             else
             {
