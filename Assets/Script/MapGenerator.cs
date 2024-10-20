@@ -39,6 +39,7 @@ public class MapGenerator : MonoBehaviour
         AdjustContentSizeAndPosition();
         GenerateNodes();
         CreateConnections();
+        SetNodeInteractableStates(0); // 첫 번째 레벨의 노드 활성화
     }
 
     NodeType GetRandomNodeTypeByProbability(NodeType[] nodeTypes, float[] probabilities)
@@ -305,4 +306,59 @@ public class MapGenerator : MonoBehaviour
 
         contentRect.localPosition = new Vector2(0, 0);
     }
+
+    void SetNodeInteractableStates(int level)
+    {
+        foreach (List<MapNode> levelNodes in mapLevels)
+        {
+            foreach (MapNode node in levelNodes)
+            {
+                node.SetInteractable(false);
+            }
+        }
+
+        // 첫 번째 레벨의 모든 노드를 활성화
+        if (level == 0)
+        {
+            foreach (MapNode node in mapLevels[level])
+            {
+                node.SetInteractable(true);                
+            }
+        }
+        else
+        {
+            // 클릭된 노드와 연결된 다음 레벨의 노드만 활성화
+            foreach (MapNode node in mapLevels[level - 1])
+            {
+                if (node.IsClicked)
+                {
+                    foreach (MapNode connectedNode in node.Connections)
+                    {
+                        connectedNode.SetInteractable(true);
+                    }
+                }
+            }
+        }
+    }
+
+    public void OnNodeClicked(MapNode clickedNode)
+    {
+        // 클릭된 노드의 현재 레벨 비활성화
+        foreach (MapNode node in mapLevels[clickedNode.Level])
+        {
+            node.SetInteractable(false);
+        }
+
+        // 다음 레벨의 연결된 노드만 활성화
+        foreach (MapNode connectedNode in clickedNode.Connections)
+        {
+            connectedNode.SetInteractable(true);
+        }
+
+        // 노드의 클릭 상태 업데이트
+        clickedNode.MarkAsClicked();
+
+        // 다음 노드 상태 설정
+        SetNodeInteractableStates(clickedNode.Level + 1);
+    }    
 }

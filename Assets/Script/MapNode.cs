@@ -18,8 +18,14 @@ public class MapNode : MonoBehaviour
     public int Level { get; private set; }
     public List<MapNode> Connections { get; private set; }  // 연결된 노드들
     public GameObject NodeObject { get; private set; }
+
+    public bool IsClicked { get; private set; } = false;
     public List<Line> lines = new List<Line>();
     public List<GameObject> prevNodePrefab = new List<GameObject>();
+
+    private bool isInteractable = false; // 선택불가능한 노드만들기
+
+     private SpriteRenderer spriteRenderer;  // 노드의 시각적 구분을 위해 사용
 
     private void Update()
     {
@@ -52,6 +58,20 @@ public class MapNode : MonoBehaviour
         }
     }
 
+    public void OnNodeClicked()
+    {
+        if (isInteractable)
+        {
+            Debug.Log($"Node at level {Level} clicked!");
+            // MapGenerator에 노드가 클릭되었음을 알림
+            FindObjectOfType<MapGenerator>().OnNodeClicked(this);
+        }
+        else
+        {
+            Debug.Log("This node is not interactable.");
+        }
+    }
+
     public void Initialize(NodeType type, int level, GameObject nodeObject)
     {
         Type = type;
@@ -64,5 +84,23 @@ public class MapNode : MonoBehaviour
     {
         Connections.Add(otherNode);
         lines.Add(line);
+    }
+
+    // 노드의 활성화/비활성화 상태를 변경하는 메서드
+    public void SetInteractable(bool interactable)
+    {
+        isInteractable = interactable;
+
+        // 노드의 색상을 변경하여 활성화/비활성화 상태 시각적으로 구분
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = interactable ? Color.white : Color.gray;  // 활성화된 노드는 흰색, 비활성화된 노드는 회색
+        }                
+    }
+
+    public void MarkAsClicked()
+    {
+        IsClicked = true;
+        SetInteractable(false); // 클릭되면 비활성화
     }
 }
