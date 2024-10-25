@@ -16,6 +16,7 @@ public class MapNode : MonoBehaviour
 {
     public NodeType Type { get; private set; }
     public int Level { get; private set; }
+    public int Index { get; private set; }  // 노드의 인덱스 (레벨 내에서의 위치)
     public List<MapNode> Connections { get; private set; }  // 연결된 노드들
     public GameObject NodeObject { get; private set; }
 
@@ -72,10 +73,11 @@ public class MapNode : MonoBehaviour
         }
     }
 
-    public void Initialize(NodeType type, int level, GameObject nodeObject)
+    public void Initialize(NodeType type, int level, int index, GameObject nodeObject)
     {
         Type = type;
         Level = level;
+        Index = index;
         NodeObject = nodeObject;
         Connections = new List<MapNode>();
     }

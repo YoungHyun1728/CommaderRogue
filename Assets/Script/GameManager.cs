@@ -6,7 +6,6 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager instance;    // instance를 static으로 선언해 전역에서 사용가능
 
-
     void Awake()
     {
         if(instance != null)

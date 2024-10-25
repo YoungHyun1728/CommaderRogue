@@ -25,7 +25,8 @@ public class MapGenerator : MonoBehaviour
     private float tradeProbability = 0.1f;   
 
     private List<List<MapNode>> mapLevels;
-
+    public SaveData saveData = new SaveData();  // 게임 데이터를 저장할 인스턴스
+    
     public GameObject scrollViewContent;  
 
     void Start()
@@ -218,7 +219,17 @@ public class MapGenerator : MonoBehaviour
                 {
                     mapNode = nodeObject.AddComponent<MapNode>();
                 }
-                mapNode.Initialize(nodeType, level, nodeObject);
+                mapNode.Initialize(nodeType, level, nodeIndex, nodeObject);
+
+                // 노드 정보를 저장
+                NodeData nodeData = new NodeData
+                {
+                    level = level,
+                    index = nodeIndex,
+                    type = nodeType,
+                    connectedIndices = new List<int>() // 이후 연결이 만들어질 때 추가됨
+                };
+                saveData.mapNodes.Add(nodeData);
 
                 currentLevelNodes.Add(mapNode);
             }
@@ -265,6 +276,15 @@ public class MapGenerator : MonoBehaviour
                     foreach (MapNode nextNode in currentLevelNodes)
                     {
                         DrawConnection(prevNode.NodeObject, nextNode.NodeObject);
+                        
+                        // 연결 정보 SaveData에 저장
+                        NodeData prevNodeData = saveData.mapNodes.Find(node => node.level == prevNode.Level && node.index == prevNode.Index);
+                        NodeData nextNodeData = saveData.mapNodes.Find(node => node.level == nextNode.Level && node.index == nextNode.Index);
+                        
+                        if (prevNodeData != null && nextNodeData != null)
+                        {
+                            prevNodeData.connectedIndices.Add(nextNodeData.index);
+                        }
                     }
                 }
                 else if (level % bossInterval == 0)
@@ -290,6 +310,15 @@ public class MapGenerator : MonoBehaviour
                         {
                             MapNode nextNode = currentLevelNodes[Random.Range(minY, maxY + 1)];
                             DrawConnection(prevNode.NodeObject, nextNode.NodeObject);
+                            
+                            // 연결 정보를 저장
+                            NodeData prevNodeData = saveData.mapNodes.Find(node => node.level == prevNode.Level && node.index == prevNode.Index);
+                            NodeData nextNodeData = saveData.mapNodes.Find(node => node.level == nextNode.Level && node.index == nextNode.Index);
+                            
+                            if (prevNodeData != null && nextNodeData != null)
+                            {
+                                prevNodeData.connectedIndices.Add(nextNodeData.index);
+                            }
                         }
                     }
                 }
