@@ -27,7 +27,8 @@ public class MapGenerator : MonoBehaviour
     private List<List<MapNode>> mapLevels;
     public SaveData saveData = new SaveData();  // 게임 데이터를 저장할 인스턴스
     
-    public GameObject scrollViewContent;  
+    public GameObject scrollViewContent;
+    public GameObject mapScrollView; // 맵을 열고닫게끔 제어하기 위해
 
     void Start()
     {
@@ -389,5 +390,14 @@ public class MapGenerator : MonoBehaviour
 
         // 다음 노드 상태 설정
         SetNodeInteractableStates(clickedNode.Level + 1);
+    }
+
+    public void ToggleMapView()
+    {
+        if (mapScrollView != null)
+        {
+            bool isActive = mapScrollView.activeSelf;
+            mapScrollView.SetActive(!isActive);  // 현재 상태를 반전시켜서 맵을 열거나 닫음
+        }
     }    
 }
