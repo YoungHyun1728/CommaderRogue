@@ -6,7 +6,6 @@ public class Line : MonoBehaviour
 {
     public GameObject startNode;
     public GameObject endNode;
-    public LineRenderer lineRenderer;
     void Update()
     {
         // 쓸모없어진 라인 삭제

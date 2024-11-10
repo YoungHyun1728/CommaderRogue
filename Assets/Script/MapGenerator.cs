@@ -5,6 +5,7 @@ using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
 
 public class MapGenerator : MonoBehaviour
 {
@@ -122,20 +123,28 @@ public class MapGenerator : MonoBehaviour
 
     void DrawConnection(GameObject startNode, GameObject endNode)
     {
-        // 라인 생성
+        // 라인 프리팹으로부터 라인 오브젝트 생성
         GameObject lineObject = Instantiate(linePrefab, scrollViewContent.transform);
-        LineRenderer lineRenderer = lineObject.GetComponent<LineRenderer>();
 
-        // Line 초기화
-        Line line = lineObject.AddComponent<Line>();
-        line.startNode = startNode;
-        line.endNode = endNode;
-        line.lineRenderer = lineRenderer;
+        // RectTransform을 통해 라인 오브젝트를 설정
+        RectTransform rect = lineObject.GetComponent<RectTransform>();
+        if (rect == null)
+        {
+            rect = lineObject.AddComponent<RectTransform>();
+        }
 
-        lineRenderer.useWorldSpace = false; //월드좌표계 사용
+        UnityEngine.UI.Image lineImage = lineObject.GetComponent<UnityEngine.UI.Image>();
+        if (lineImage == null)
+        {
+            lineImage = lineObject.AddComponent<UnityEngine.UI.Image>();
+        }
 
-        // LineRenderer의 위치를 부모(Content)의 좌표계에 맞춤
-        lineObject.transform.localPosition = Vector3.zero;
+        // 라인 생성 후 위치 조정
+        lineObject.transform.SetAsFirstSibling();
+
+        // 노드의 위치를 가져와 선을 그릴 위치를 설정
+        Vector3 startPos = startNode.GetComponent<RectTransform>().anchoredPosition;
+        Vector3 endPos = endNode.GetComponent<RectTransform>().anchoredPosition;
 
         // 노드의 RectTransform 가져오기
         RectTransform startRect = startNode.GetComponent<RectTransform>();
@@ -143,25 +152,31 @@ public class MapGenerator : MonoBehaviour
 
         if (startRect == null || endRect == null)
         {
-            Debug.LogError("��???���� RectTransform?? ������?��?��?.");
+            Debug.LogError("RectTransform이 존재하지 않습니다.");
             return;
         }
 
-        // 위치가져오기
-        Vector3 startPos = startRect.localPosition;
-        Vector3 endPos = endRect.localPosition;
+        // 선의 중심을 설정
+        rect.anchoredPosition = (startPos + endPos) / 2;
 
-        // LineRenderer 설정
-        lineRenderer.positionCount = 2;
-        lineRenderer.SetPosition(0, startPos);
-        lineRenderer.SetPosition(1, endPos);
-        
-        //노드의 뒤로 선정리
-        lineRenderer.sortingOrder = -1;
+        // 선의 길이와 회전을 설정
+        float distance = Vector3.Distance(startPos, endPos);
+        rect.sizeDelta = new Vector2(distance, 5f); // 두께 5px
+        rect.rotation = Quaternion.FromToRotation(Vector3.right, endPos - startPos);
+
+         // Line 컴포넌트를 가져오거나 추가
+        Line line = lineObject.GetComponent<Line>();
+        if (line == null)
+        {
+            line = lineObject.AddComponent<Line>();
+        }
 
         //연결 정보
         MapNode startMapNode = startNode.GetComponent<MapNode>();
         MapNode endMapNode = endNode.GetComponent<MapNode>();
+
+        line.startNode = startNode;
+        line.endNode = endNode;
 
         if (startMapNode != null)
         {
