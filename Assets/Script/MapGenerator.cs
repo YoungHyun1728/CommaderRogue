@@ -30,7 +30,7 @@ public class MapGenerator : MonoBehaviour
     
     public GameObject scrollViewContent;
     public GameObject mapScrollView; // 맵을 열고닫게끔 제어하기 위해
-
+    public GameObject HeroScrollView;
     void Start()
     {
         if (scrollViewContent == null)
@@ -414,5 +414,14 @@ public class MapGenerator : MonoBehaviour
             bool isActive = mapScrollView.activeSelf;
             mapScrollView.SetActive(!isActive);  // 현재 상태를 반전시켜서 맵을 열거나 닫음
         }
-    }    
+    }
+
+    public void ToggleHeroTap()
+    {
+        if (mapScrollView != null)
+        {
+            bool isActive = HeroScrollView.activeSelf;
+            HeroScrollView.SetActive(!isActive);  // 현재 상태를 반전시켜서 맵을 열거나 닫음
+        }
+    }
 }

@@ -5,7 +5,7 @@ using UnityEngine;
 public class CameraResolusion : MonoBehaviour
 {
     void Awake()
-    {
+    {        
         Camera camera = GetComponent<Camera>();
         Rect rect = camera.rect;
         float scaleheight = ((float)Screen.width / Screen.height) / ((float) 16 / 9);
