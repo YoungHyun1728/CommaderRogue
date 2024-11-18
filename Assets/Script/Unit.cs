@@ -43,33 +43,6 @@ public class Unit : MonoBehaviour
         Vector3Int initialPosition3D = new Vector3Int(initialPosition.x, initialPosition.y, 0);
         transform.position = tileMapManager.tilemap.CellToWorld(initialPosition3D);
     }
-
-    void Start()
-    {
-        // TileMapManager 연결
-        tileMapManager = FindObjectOfType<TileMapManager>();
-        if (tileMapManager == null)
-        {
-            Debug.LogError("TileMapManager를 찾을 수 없습니다.");
-            return;
-        }
-
-        // 초기 위치 설정 (타일맵의 원점)
-        Vector2Int initialTile = tileMapManager.tilemapOrigin;
-        Vector3Int initialTile3D = new Vector3Int(initialTile.x, initialTile.y, 0);
-
-         // 초기화
-        Initialize(tileMapManager, initialTile);
-
-        // 이동 목표
-        Vector2Int targetTile = new Vector2Int(0, 0);
-        Debug.Log($"목표 타일로 이동 테스트: {targetTile}");
-
-        // 목표 타일로 이동
-        MoveTo(targetTile);
-    }
-
-
     void Update()
     {
         Vector2Int newTilePosition = GetTileFromWorldPosition();
@@ -136,6 +109,13 @@ public class Unit : MonoBehaviour
             {
                 occupiedTiles.Add(tileData.Position);
             }
+        }
+
+        // 목표 타일이 점유된 경우 이동 불가 처리?? 수정할듯
+        if (occupiedTiles.Contains(targetTile))
+        {
+            Debug.LogWarning($"MoveTo: 목표 타일 {targetTile}이 점유되어 이동 불가.");
+            return;
         }
 
         // 경로 탐색

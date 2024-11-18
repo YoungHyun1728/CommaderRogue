@@ -19,9 +19,36 @@ public class TileMapManager : MonoBehaviour
     private List<string> tileStatusDisplay = new List<string>(); // 디버깅용 상태 표시 리스트
 
     public Vector2Int tilemapOrigin; // 타일맵의 (0,0)
+
+    public GameObject unitPrefab; // 인스펙터에서 유닛 프리팹 할당 / 테스트용
     void Start()
     {
         InitializeTileStatus();
+
+        if (unitPrefab == null)
+        {
+            Debug.LogError("unitPrefab이 인스펙터에 할당되지 않았습니다!");
+            return;
+        }
+
+        // 첫 번째 유닛 생성 및 초기화
+        GameObject unit1 = Instantiate(unitPrefab);
+        unit1.GetComponent<Unit>().Initialize(this, new Vector2Int(-6, -3));
+        playerUnits.Add(unit1);
+
+        // 두 번째 유닛 생성 및 초기화
+        GameObject unit2 = Instantiate(unitPrefab);
+        unit2.GetComponent<Unit>().Initialize(this, new Vector2Int(-6, 2));
+        playerUnits.Add(unit2);
+
+        // 첫 번째 유닛 이동 테스트
+        unit1.GetComponent<Unit>().MoveTo(new Vector2Int(0, 0));
+
+        // 두 번째 유닛 이동 테스트
+        unit2.GetComponent<Unit>().MoveTo(new Vector2Int(-1, -2));
+
+        Debug.Log("두 유닛 생성 및 이동 테스트 완료");
+        
     }
 
     void Update()

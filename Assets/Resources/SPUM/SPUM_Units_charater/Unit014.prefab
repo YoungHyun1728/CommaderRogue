@@ -2583,6 +2583,7 @@ GameObject:
   m_Component:
   - component: {fileID: 9118711203110105376}
   - component: {fileID: 5033837084443446936}
+  - component: {fileID: 1593347642952220496}
   m_Layer: 5
   m_Name: Unit014
   m_TagString: Untagged
@@ -2632,6 +2633,60 @@ MonoBehaviour:
   UnitTypeChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1593347642952220496
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7066780412233370560}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9a53ad511fae4843867c92d4dffbf65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  level: 0
+  maxLevel: 25
+  hp: 0
+  MaxMp: 200
+  mp: 0
+  exp: 0
+  levelUpExp:
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  strength: 0
+  agility: 0
+  intelligence: 0
+  maxHp: 0
+  hpRecovery: 0
+  attackSpeed: 0
+  criticalProbability: 0
+  manaRecovery: 0
+  bonusExp: 0
+  currentTilePosition: {x: 0, y: 0}
+  targetTilePosition: {x: 0, y: 0, z: 0}
 --- !u!1 &7096489463502718979
 GameObject:
   m_ObjectHideFlags: 0
