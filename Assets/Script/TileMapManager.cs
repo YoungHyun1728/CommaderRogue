@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Numerics;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -43,9 +42,9 @@ public class TileMapManager : MonoBehaviour
 
         // 첫 번째 유닛 이동 테스트
         unit1.GetComponent<Unit>().MoveTo(new Vector2Int(0, 0));
-
-        // 두 번째 유닛 이동 테스트
-        unit2.GetComponent<Unit>().MoveTo(new Vector2Int(-1, -2));
+        
+        // 두 번째 유닛 이동 테스트        
+        unit2.GetComponent<Unit>().MoveTo(new Vector2Int(3,2));
 
         Debug.Log("두 유닛 생성 및 이동 테스트 완료");
         
@@ -69,11 +68,15 @@ public class TileMapManager : MonoBehaviour
             {
                 Vector3Int tilePosition = new Vector3Int(x, y, 0);
                 Vector2Int gridPosition = new Vector2Int(x, y); //2D 로 변환
-                if (tilemap.HasTile(tilePosition))
+                /*if (tilemap.HasTile(tilePosition))
                 {
                     // 타일이 있으면 데이터 추가 (비어 있음: 0)
                     tileDataList.Add(new TileData(gridPosition, 0));
-                }
+                }*/
+
+                // 타일이 없더라도 기본 상태로 추가
+                int initialStatus = tilemap.HasTile(tilePosition) ? 0 : -1; // 타일이 없으면 -1로 설정
+                tileDataList.Add(new TileData(gridPosition, initialStatus));
             }
         }
 
@@ -92,6 +95,7 @@ public class TileMapManager : MonoBehaviour
         {
             tileDataList[i] = new TileData(tileDataList[i].Position, 0); // 기본상태 : 비어있음 [0]
         }
+        
         // 플레이어 유닛의 위치를 -1로 설정
         foreach (var unit in playerUnits)
         {
@@ -116,14 +120,24 @@ public class TileMapManager : MonoBehaviour
     // 특정 타일의 상태를 설정
     public void SetTileStatus(Vector2Int position, int status)
     {
+        bool tileFound = false; // 타일 변경 확인용
+
         for(int i = 0; i < tileDataList.Count; i++)
         {
             if (tileDataList[i].Position == position)
             {
                 tileDataList[i] = new TileData(position, status); // 상태 업데이트
+                Debug.Log($"[TileMapManager] 타일 상태 변경: {position} -> {status}");
+                tileFound = true; // 타일을 찾았음을 표시
                 break;
             }
         }
+
+        if(!tileFound)
+        {
+            Debug.LogWarning($"[TileMapManager] 타일 {position}을 찾을 수 없습니다!");
+        }
+        
     }
 
     // 특정 좌표에 대한 상태 가져오기
@@ -141,24 +155,16 @@ public class TileMapManager : MonoBehaviour
         return -1; // 기본값: 이동 불가
     }
 
-    // 특정 좌표가 타일맵에 존재하는지 확인
-    public bool IsTileAt(Vector2Int position)
-    {
-        foreach (var tileData in tileDataList)
-        {
-            if (tileData.Position == position)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
     // 이동가능한 타일인지 확인
     public bool IsWalkable(Vector2Int tilePosition)
     {
         int status = GetTileStatus(tilePosition);
-        return status == 0;
+        if(status != -1)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     // 선택가능한 타일은 하이라이트타일로 교체
@@ -207,5 +213,12 @@ public class TileMapManager : MonoBehaviour
         {
             tileStatusDisplay.Add($"Position: {tileData.Position}, Status: {tileData.Status}");
         }
+    }
+
+    // 월드 좌표를 타일 좌표로 변환
+    public Vector2Int GetTileFromWorldPosition(Vector3 worldPosition)
+    {
+        Vector3Int cellPosition = tilemap.WorldToCell(worldPosition);
+        return new Vector2Int(cellPosition.x, cellPosition.y);
     }
 }

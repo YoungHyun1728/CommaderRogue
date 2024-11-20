@@ -231,7 +231,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1839735485 &75730343
 Tilemap:
   m_ObjectHideFlags: 0
@@ -1104,7 +1104,7 @@ TilemapRenderer:
   m_MaxChunkCount: 16
   m_MaxFrameAge: 16
   m_SortOrder: 0
-  m_Mode: 0
+  m_Mode: 1
   m_DetectChunkCullingBounds: 0
   m_MaskInteraction: 0
 --- !u!4 &75730346
@@ -2820,7 +2820,7 @@ Transform:
   m_GameObject: {fileID: 1821482688}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -100}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3745,7 +3745,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a0cf5a034eb603f46b8987d1c8efffb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tilemap: {fileID: 75730343}
+  tilemap: {fileID: 1821482691}
   highlightTile: {fileID: 11400000, guid: df2899cb7d95b434fa6b0bf67b607163, type: 2}
   playerUnits: []
   enemyUnits: []
@@ -3991,7 +3991,7 @@ Transform:
   m_GameObject: {fileID: 2010647798}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.5, z: 100}
+  m_LocalPosition: {x: 0, y: -0.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

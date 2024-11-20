@@ -4,6 +4,12 @@ using UnityEngine;
 
 public class Unit : MonoBehaviour
 {
+    public enum UnitState{ Idle, Move, Attack, Faint }
+    
+    [SerializeField]
+    private UnitState currentState; // 현재 상태
+
+    public int unitId; // 유닛의 ID 경로 예약할때 사용
     public int level = 0;
     public int maxLevel = 25;
     public float hp;
@@ -12,6 +18,7 @@ public class Unit : MonoBehaviour
     public int exp = 0;
     List<int> Equipment = new List<int>();
     public float[] levelUpExp = new float[24];
+    public int attackRange = 1;
     public int strength;
     public int agility;
     public int intelligence;
@@ -19,7 +26,7 @@ public class Unit : MonoBehaviour
     public float maxHp;
     public float hpRecovery;
     //agility 보너스스탯
-    public float attackSpeed;
+    public float attackInretval;
     public float criticalProbability;
     //intelligence 보너스스탯
     public float manaRecovery;
@@ -30,6 +37,9 @@ public class Unit : MonoBehaviour
     // 현재 타일맵에서의 위치
     public Vector2Int currentTilePosition;
     public Vector3Int targetTilePosition;
+    public GameObject targetEnemy;
+
+    
 
     public void Initialize(TileMapManager tileMapManager, Vector2Int initialPosition)
     {
@@ -41,10 +51,22 @@ public class Unit : MonoBehaviour
 
         // 유닛의 월드 좌표 동기화
         Vector3Int initialPosition3D = new Vector3Int(initialPosition.x, initialPosition.y, 0);
-        transform.position = tileMapManager.tilemap.CellToWorld(initialPosition3D);
+        Vector3 tileCenter = tileMapManager.tilemap.GetCellCenterWorld(initialPosition3D);
+
+        // 유닛 위치 설정
+        transform.position = tileCenter;
+
+        Debug.Log($"[Unit] 초기 위치 설정: {transform.position} (중심: {tileCenter})");
+    }
+
+    void Awake()
+    {
+        unitId = GetInstanceID(); // 고유 ID를 Unity의 InstanceID로 설정
+        currentState = UnitState.Idle; // 기본상태를 Idle // 추후 생성으로 옮겨야할듯
     }
     void Update()
     {
+        //타일맵 매니저에게 자신의 위치를 계속 알려줌
         Vector2Int newTilePosition = GetTileFromWorldPosition();
 
         if (currentTilePosition != newTilePosition)
@@ -52,6 +74,98 @@ public class Unit : MonoBehaviour
             tileMapManager.UpdateTileStatus(newTilePosition); // 타일맵 상태 업데이트
             currentTilePosition = newTilePosition; // 현재 위치 갱신
         }
+
+        //2초마다 가까운 적의 위치를 받아옴
+        UpdateTargetEnemy(2.0f);
+
+        switch (currentState)
+        {
+            case UnitState.Idle:
+                break;
+            case UnitState.Move:
+                break;
+            case UnitState.Attack:
+                break;
+            case UnitState.Faint:
+                break;
+        }
+    }
+
+    private void ChangeState(UnitState newState)
+    {
+        if (currentState == newState) return;
+
+        Debug.Log($"[Unit] State Changed: {currentState} -> {newState}");
+        currentState = newState;
+
+        // 상태 변경 후 초기화 작업
+        switch (newState)
+        {
+            case UnitState.Idle:
+                OnEnterIdle();
+                break;
+            case UnitState.Move:
+                OnEnterMove();
+                break;
+            case UnitState.Attack:
+                OnEnterAttack();
+                break;
+            case UnitState.Faint:
+                OnEnterFaint();
+                break;
+        }
+    }
+
+    // 상태 진입 시 초기화
+    private void OnEnterIdle() 
+    {
+        // IDLE 애니메이션 실행
+    }
+    private void OnEnterMove() 
+    {
+        // 내용업음
+    }
+    private void OnEnterAttack() 
+    { 
+        //대상이 없을시 이동상태로 변경
+        if (targetEnemy != null)
+        {
+            PerformAttack(targetEnemy);
+        }
+        else
+        {
+            ChangeState(UnitState.Move);
+        }
+    }
+    private void OnEnterFaint()
+    {
+        // 기절시 데이터 저장 후 오브젝트 삭제?
+    }
+
+    // IDLE 상태 
+    private void HandleIdleState()
+    {
+        
+    }
+
+    // MOVE 상태
+    private void HandleMovingState()
+    {
+        
+    }
+
+    // ATTACK 상태
+    private void HandleAttackingState()
+    {
+        // 공격 로직
+        Debug.Log($"[Unit] Attacking...");
+    }
+
+    // FAINT 상태
+    private void HandleDeadState()
+    {
+        // 사망 로직 (예: 애니메이션, 오브젝트 비활성화 등)
+        Debug.Log($"[Unit] Dead. No further actions.");
     }
 
     private Vector2Int GetTileFromWorldPosition()
@@ -67,18 +181,6 @@ public class Unit : MonoBehaviour
             level++;
             // 레벨업시 능력치 추가
         }
-    }
-
-    public void MeleeAttack()
-    {
-        //자신의 위치한 타일에서 상하좌우칸 중 한칸을 선택해 공격
-        // 공격시 마나 10 회복
-    }
-
-    public void RangeAttack()
-    {
-        // 자신의 공격 범위 내에서 적이 있는 타일한칸을 선택해 공격
-        // 공격시 마나 10 회복
     }
 
     public void Equip()
@@ -141,36 +243,179 @@ public class Unit : MonoBehaviour
 
     private IEnumerator FollowPath(List<Vector2Int> path)
     {
-        foreach (var tile in path)
+        int reservationState = GetReservationState();
+
+        foreach (var tile in path) 
         {
-            // 이전 타일 상태를 비우기
+            // 현재 타일 비우기
             tileMapManager.SetTileStatus(currentTilePosition, 0);
 
-            // 새 타일 상태를 점유로 설정
-            tileMapManager.SetTileStatus(tile, -1);
+            // 다음 타일 예약
+            tileMapManager.SetTileStatus(tile, reservationState);
 
-            // 목표 위치 계산
-            Vector3 targetPosition = tileMapManager.tilemap.CellToWorld(new Vector3Int(tile.x, tile.y, 0));
+            // 다음 타일의 월드 위치 계산
+            Vector3 targetPosition = tileMapManager.tilemap.GetCellCenterWorld(new Vector3Int(tile.x, tile.y, 0));
 
-            // 부드럽게 이동
-            while (Vector3.Distance(transform.position, targetPosition) > 0.1f)
+            // 이동하면서 목표 위치에 도달할 때까지 이동
+            while (Vector3.Distance(transform.position, targetPosition) > 0.1f) 
             {
                 transform.position = Vector3.MoveTowards(transform.position, targetPosition, Time.deltaTime * 3f);
                 yield return null;
-            }
+            }        
 
             // 현재 타일 갱신
             currentTilePosition = tile;
+            
+            // 현재 타일 점유 상태로 업데이트
+            tileMapManager.SetTileStatus(currentTilePosition, -1); // 현재 타일을 점유 상태로 설정
+
+            // 공격 범위 확인
+            if (CheckAttackRange()) 
+            {
+                ChangeState(UnitState.Attack); // 공격 상태로 전환
+                yield break; // 이동 종료
+            }
+
+            // 다음 타일로 이동 준비
         }
     }
 
-    private Vector3 GetTileCenter(Vector3Int cellPosition)
+    private IEnumerator RecalculatePath(Vector2Int targetTile)
     {
-        Vector3 bottomLeft = tileMapManager.tilemap.CellToWorld(cellPosition);
-        Vector3 cellSize = tileMapManager.tilemap.cellSize;
+        Debug.Log($"[Unit] 경로 재계산 시작. 목표: {targetTile}");
 
-        // 셀의 중심 좌표 계산
-        return bottomLeft + new Vector3(cellSize.x / 2, cellSize.y / 2, 0);
+        HashSet<Vector2Int> occupiedTiles = new HashSet<Vector2Int>();
+        foreach (var tileData in tileMapManager.tileDataList)
+        {
+            if (tileData.Status != 0 && tileData.Position != currentTilePosition)
+            {
+                occupiedTiles.Add(tileData.Position);
+            }
+        }
+
+        List<Vector2Int> newPath = AStarPathfinder.FindPath(currentTilePosition, targetTile, tileMapManager, occupiedTiles);
+
+        if (newPath.Count > 0)
+        {
+            Debug.Log($"[Unit] 새 경로 발견. 스텝 수: {newPath.Count}");
+            yield return StartCoroutine(FollowPath(newPath)); // 새 경로 따라 이동
+        }
+        else
+        {
+            Debug.LogWarning($"[Unit] 경로 재계산 실패. 목표 {targetTile}에 도달할 수 없습니다.");
+        }
+    }
+
+    private int GetReservationState()
+    {
+        return -2 - unitId; // 고유 예약 상태
+    }
+
+    //가장 가까운 적을 지정해주는 함수
+    private GameObject FindClosestEnemy()
+    {
+        GameObject closestEnemy = null;
+        float closestDistance = float.MaxValue;
+
+        foreach (GameObject enemy in tileMapManager.enemyUnits)
+        {
+            if (enemy == null) continue;
+
+            Vector2Int enemyTilePosition = tileMapManager.GetTileFromWorldPosition(enemy.transform.position);
+            float distance = Vector2Int.Distance(currentTilePosition, enemyTilePosition);
+
+            if (distance < closestDistance)
+            {
+                closestEnemy = enemy;
+                closestDistance = distance;
+            }
+        }
+
+        return closestEnemy;
+    }
+
+    // 초기값 : 2초마다 업데이트 되게 실행
+    IEnumerator UpdateTargetEnemy(float interval) 
+    {
+        while (true)
+        {
+            targetEnemy = FindClosestEnemy();
+            yield return new WaitForSeconds(interval);
+        }
+    }
+
+    // 공격 범위 타일 계산 인접타일을 range크기만큼 확장시킴    
+    HashSet<Vector2Int> GetTilesInRange(Vector2Int center, int range) 
+    {
+        HashSet<Vector2Int> tilesInRange = new HashSet<Vector2Int>();
+        for (int x = -range; x <= range; x++) {
+            for (int y = -range; y <= range; y++) {
+                Vector2Int tile = new Vector2Int(center.x + x, center.y + y);
+                // 정수 거리 계산을 통해 범위 안에 있는 타일만 추가
+                if (Mathf.Abs(tile.x - center.x) + Mathf.Abs(tile.y - center.y) <= range && tileMapManager.IsWalkable(tile)) 
+                {
+                    tilesInRange.Add(tile);
+                }
+            }
+        }
+        
+        return tilesInRange;
+    }
+
+    // 적이 범위내에 존재하는지 확인
+    GameObject FindEnemyInRange(Vector2Int center, int range) 
+    {
+        HashSet<Vector2Int> tilesInRange = GetTilesInRange(center, range);
+        foreach (Vector2Int tile in tilesInRange) 
+        {
+            foreach (GameObject enemy in tileMapManager.enemyUnits) 
+            {
+                if (tileMapManager.GetTileFromWorldPosition(enemy.transform.position) == tile) {
+                    return enemy; // 범위 내 적 발견
+                }
+            }
+        }
+        return null; // 범위 내 적 없음
+    }
+
+    private void CheckAndAttack() 
+    {
+        GameObject targetEnemy = FindEnemyInRange(currentTilePosition, attackRange);
+        if (targetEnemy != null) 
+        {
+            ChangeState(UnitState.Attack);
+            PerformAttack(targetEnemy);
+        }
+    }
+
+    private void PerformAttack(GameObject enemy) 
+    {
+        // 공격 로직 (예: 데미지 계산, 적 체력 감소)
+        // 공격시 마나 10회복
+        Debug.Log($"공격 중: {enemy.name}");
+        // 적이 쓰러졌다면 상태 변경
+        if (enemy.GetComponent<Unit>().hp <= 0) 
+        {
+            Debug.Log($"{enemy.name} 처치 완료!");
+            ChangeState(UnitState.Idle);
+        }
+    }
+
+    private bool CheckAttackRange() 
+    {
+        HashSet<Vector2Int> tilesInRange = GetTilesInRange(currentTilePosition, attackRange);
+        foreach (Vector2Int tile in tilesInRange) 
+        {
+            foreach (GameObject enemy in tileMapManager.enemyUnits) 
+            {
+                if (tileMapManager.GetTileFromWorldPosition(enemy.transform.position) == tile) 
+                {
+                    targetEnemy = enemy; // 타겟 적 설정
+                    return true; // 적이 범위 내에 있음
+                }
+            }
+        }
+        return false; // 범위 내에 적 없음
     }
 
 }
