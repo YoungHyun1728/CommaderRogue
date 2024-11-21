@@ -18,8 +18,9 @@ public class TileMapManager : MonoBehaviour
     private List<string> tileStatusDisplay = new List<string>(); // 디버깅용 상태 표시 리스트
 
     public Vector2Int tilemapOrigin; // 타일맵의 (0,0)
-
-    public GameObject unitPrefab; // 인스펙터에서 유닛 프리팹 할당 / 테스트용
+    
+    // 테스트용 배열
+    public GameObject[] unitPrefab = new GameObject[2]; // 인스펙터에서 유닛 프리팹 할당 / 테스트용
     void Start()
     {
         InitializeTileStatus();
@@ -31,23 +32,22 @@ public class TileMapManager : MonoBehaviour
         }
 
         // 첫 번째 유닛 생성 및 초기화
-        GameObject unit1 = Instantiate(unitPrefab);
+        GameObject unit1 = Instantiate(unitPrefab[0]);
         unit1.GetComponent<Unit>().Initialize(this, new Vector2Int(-6, -3));
         playerUnits.Add(unit1);
 
         // 두 번째 유닛 생성 및 초기화
-        GameObject unit2 = Instantiate(unitPrefab);
+        GameObject unit2 = Instantiate(unitPrefab[0]);
         unit2.GetComponent<Unit>().Initialize(this, new Vector2Int(-6, 2));
         playerUnits.Add(unit2);
 
-        // 첫 번째 유닛 이동 테스트
-        unit1.GetComponent<Unit>().MoveTo(new Vector2Int(0, 0));
-        
-        // 두 번째 유닛 이동 테스트        
-        unit2.GetComponent<Unit>().MoveTo(new Vector2Int(3,2));
+        Debug.Log("두 유닛 생성 테스트 완료");
 
-        Debug.Log("두 유닛 생성 및 이동 테스트 완료");
-        
+        GameObject unit3 = Instantiate(unitPrefab[1]);
+        unit3.GetComponent<Unit>().Initialize(this, new Vector2Int(5, -1));
+        enemyUnits.Add(unit3);
+
+        Debug.Log("적 유닛 생성 테스트 완료");
     }
 
     void Update()
@@ -68,15 +68,27 @@ public class TileMapManager : MonoBehaviour
             {
                 Vector3Int tilePosition = new Vector3Int(x, y, 0);
                 Vector2Int gridPosition = new Vector2Int(x, y); //2D 로 변환
-                /*if (tilemap.HasTile(tilePosition))
-                {
-                    // 타일이 있으면 데이터 추가 (비어 있음: 0)
-                    tileDataList.Add(new TileData(gridPosition, 0));
-                }*/
-
-                // 타일이 없더라도 기본 상태로 추가
+                
                 int initialStatus = tilemap.HasTile(tilePosition) ? 0 : -1; // 타일이 없으면 -1로 설정
                 tileDataList.Add(new TileData(gridPosition, initialStatus));
+
+                 // 타일이 있는 경우 BoxCollider2D 생성
+                if (tilemap.HasTile(tilePosition))
+                {
+                    // 타일마다 GameObject 생성
+                    GameObject tileObject = new GameObject($"Tile_{gridPosition}");
+                    tileObject.transform.position = tilemap.GetCellCenterWorld(tilePosition); // 타일 중심 위치
+                    tileObject.transform.parent = transform; // TileMapManager의 자식으로 설정
+
+                    // BoxCollider2D 추가
+                    BoxCollider2D collider = tileObject.AddComponent<BoxCollider2D>();
+                    collider.isTrigger = true; // Trigger로 설정
+                    collider.size = tilemap.cellSize; // 타일 크기와 일치
+
+                    // 타일 데이터 저장
+                    TileCollider tileData = tileObject.AddComponent<TileCollider>();
+                    tileData.Position = gridPosition; // 좌표 정보 저장
+                }
             }
         }
 

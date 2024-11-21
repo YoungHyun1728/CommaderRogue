@@ -1,19 +1,21 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class Unit : MonoBehaviour
 {
-    public enum UnitState{ Idle, Move, Attack, Faint }
+    public enum UnitState{ Idle, Combat, Faint }
+
     
     [SerializeField]
     private UnitState currentState; // 현재 상태
 
     public int unitId; // 유닛의 ID 경로 예약할때 사용
     public int level = 0;
-    public int maxLevel = 25;
-    public float hp;
-    public float MaxMp = 200;
+    public int maxLevel = 25;    
+    public float maxMp = 200;
+    public float hp = 100;
     public float mp;
     public int exp = 0;
     List<int> Equipment = new List<int>();
@@ -36,7 +38,7 @@ public class Unit : MonoBehaviour
     private TileMapManager tileMapManager;
     // 현재 타일맵에서의 위치
     public Vector2Int currentTilePosition;
-    public Vector3Int targetTilePosition;
+    public Vector2Int targetTilePosition;
     public GameObject targetEnemy;
 
     
@@ -59,6 +61,11 @@ public class Unit : MonoBehaviour
         Debug.Log($"[Unit] 초기 위치 설정: {transform.position} (중심: {tileCenter})");
     }
 
+    private void Start()
+    {
+        tileMapManager = FindObjectOfType<TileMapManager>();
+    }
+
     void Awake()
     {
         unitId = GetInstanceID(); // 고유 ID를 Unity의 InstanceID로 설정
@@ -69,22 +76,16 @@ public class Unit : MonoBehaviour
         //타일맵 매니저에게 자신의 위치를 계속 알려줌
         Vector2Int newTilePosition = GetTileFromWorldPosition();
 
-        if (currentTilePosition != newTilePosition)
-        {
-            tileMapManager.UpdateTileStatus(newTilePosition); // 타일맵 상태 업데이트
-            currentTilePosition = newTilePosition; // 현재 위치 갱신
-        }
-
         //2초마다 가까운 적의 위치를 받아옴
         UpdateTargetEnemy(2.0f);
 
         switch (currentState)
         {
             case UnitState.Idle:
+                HandleIdleState();
                 break;
-            case UnitState.Move:
-                break;
-            case UnitState.Attack:
+            case UnitState.Combat:
+                HandleCombatState();
                 break;
             case UnitState.Faint:
                 break;
@@ -104,11 +105,8 @@ public class Unit : MonoBehaviour
             case UnitState.Idle:
                 OnEnterIdle();
                 break;
-            case UnitState.Move:
-                OnEnterMove();
-                break;
-            case UnitState.Attack:
-                OnEnterAttack();
+            case UnitState.Combat:
+                OnEnterCombat();
                 break;
             case UnitState.Faint:
                 OnEnterFaint();
@@ -121,21 +119,9 @@ public class Unit : MonoBehaviour
     {
         // IDLE 애니메이션 실행
     }
-    private void OnEnterMove() 
-    {
-        // 내용업음
-    }
-    private void OnEnterAttack() 
+    private void OnEnterCombat() 
     { 
-        //대상이 없을시 이동상태로 변경
-        if (targetEnemy != null)
-        {
-            PerformAttack(targetEnemy);
-        }
-        else
-        {
-            ChangeState(UnitState.Move);
-        }
+        Debug.Log($"{name} : 전투상태 돌입");
     }
     private void OnEnterFaint()
     {
@@ -145,24 +131,39 @@ public class Unit : MonoBehaviour
     // IDLE 상태 
     private void HandleIdleState()
     {
-        
+        targetEnemy = FindClosestEnemy();
+        if( targetEnemy != null)
+        {
+            ChangeState(UnitState.Combat);
+        }
     }
 
     // MOVE 상태
-    private void HandleMovingState()
+    private void HandleCombatState()
     {
-        
-    }
+        if (targetEnemy == null || targetEnemy.GetComponent<Unit>().hp <= 0)
+        {
+            // 타겟이 없거나 사망한 경우 Idle 상태로 전환
+            ChangeState(UnitState.Idle);
+            return;
+        }
 
-    // ATTACK 상태
-    private void HandleAttackingState()
-    {
-        // 공격 로직
-        Debug.Log($"[Unit] Attacking...");
+        // 타겟과의 거리 확인
+        Vector2Int enemyTilePosition = tileMapManager.GetTileFromWorldPosition(targetEnemy.transform.position);
+        if (Vector2Int.Distance(currentTilePosition, enemyTilePosition) <= attackRange)
+        {
+            // 타겟이 공격 범위 안에 있으면 공격 수행
+            PerformAttack(targetEnemy);
+        }
+        else
+        {
+            // 타겟이 범위 밖에 있으면 타겟을 향해 이동
+            MoveTo(enemyTilePosition);
+        }
     }
 
     // FAINT 상태
-    private void HandleDeadState()
+    private void HandleFaintState()
     {
         // 사망 로직 (예: 애니메이션, 오브젝트 비활성화 등)
         Debug.Log($"[Unit] Dead. No further actions.");
@@ -247,11 +248,11 @@ public class Unit : MonoBehaviour
 
         foreach (var tile in path) 
         {
-            // 현재 타일 비우기
+            /*// 현재 타일 비우기
             tileMapManager.SetTileStatus(currentTilePosition, 0);
 
             // 다음 타일 예약
-            tileMapManager.SetTileStatus(tile, reservationState);
+            tileMapManager.SetTileStatus(tile, reservationState);*/
 
             // 다음 타일의 월드 위치 계산
             Vector3 targetPosition = tileMapManager.tilemap.GetCellCenterWorld(new Vector3Int(tile.x, tile.y, 0));
@@ -267,12 +268,11 @@ public class Unit : MonoBehaviour
             currentTilePosition = tile;
             
             // 현재 타일 점유 상태로 업데이트
-            tileMapManager.SetTileStatus(currentTilePosition, -1); // 현재 타일을 점유 상태로 설정
+            //tileMapManager.SetTileStatus(currentTilePosition, -1); // 현재 타일을 점유 상태로 설정
 
             // 공격 범위 확인
             if (CheckAttackRange()) 
             {
-                ChangeState(UnitState.Attack); // 공격 상태로 전환
                 yield break; // 이동 종료
             }
 
@@ -383,7 +383,6 @@ public class Unit : MonoBehaviour
         GameObject targetEnemy = FindEnemyInRange(currentTilePosition, attackRange);
         if (targetEnemy != null) 
         {
-            ChangeState(UnitState.Attack);
             PerformAttack(targetEnemy);
         }
     }
@@ -392,7 +391,7 @@ public class Unit : MonoBehaviour
     {
         // 공격 로직 (예: 데미지 계산, 적 체력 감소)
         // 공격시 마나 10회복
-        Debug.Log($"공격 중: {enemy.name}");
+        Debug.Log($"{enemy.name}를 공격 중");
         // 적이 쓰러졌다면 상태 변경
         if (enemy.GetComponent<Unit>().hp <= 0) 
         {
@@ -417,5 +416,4 @@ public class Unit : MonoBehaviour
         }
         return false; // 범위 내에 적 없음
     }
-
 }
